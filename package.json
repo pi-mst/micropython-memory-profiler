@@ -1,0 +1,6 @@
+{
+    "urls": [
+      ["mem_dump.py", "github:pi-mst/micropython-memory-profiler/mem_dump.py"]
+    ],
+    "version": "0.1"
+}
