@@ -53,10 +53,10 @@ class HeapFrame(Frame):
                         #addr += 1024
                         addr += 0x800
                 else:
-                    print(f"entry {entry[:5]}, {addr=}")
+                    #print(f"entry {entry[:5]}, {addr=}")
                     #assert int(entry[:5], 16) == addr
                     assert int(entry[:8], 16) == addr
-                    print(f"entry2: {entry[10:]}")
+                    #print(f"entry2: {entry[10:]}")
                     #yield entry[7:]
                     yield entry[10:] # The contents of the memory representation
 
@@ -85,78 +85,3 @@ class HeapFrame(Frame):
             #body.append("{:05x}: ".format(addr) + entry)
             body.append("{:08x}: ".format(addr) + entry)
         self.heap = header + body
-
-
-def parse_capture(filename):
-    capture = Capture()
-    rtc_offset = None
-    with open(filename) as f:
-        while True:
-            line = f.readline().rstrip()
-            if not line:
-                # Skip blank lines
-                break
-            frame = None
-            if line.startswith("@@@ v"):
-                # Title line
-                capture.title = line[4:]
-                print("title:", capture.title)
-            elif line.startswith("@@@ ") and line.find(" (") != -1:
-                # Timestamp *and* datetime line
-                _, timestamp_ms, datetime = line.split(None, 2)
-                timestamp_ms = int(timestamp_ms)
-                _, _, _, _, hr, mn, sc, us = tuple(
-                    int(x) for x in datetime[1:-1].split(", ")
-                )
-                rtc_offset = (
-                    ((hr * 60 + mn) * 60 + sc) * 1000 + us // 1000 - timestamp_ms
-                )
-                print("timestamp_ms:", timestamp_ms, "rtc_offset:", rtc_offset)
-            elif line.startswith("@@@ "):
-                # Line with (only) a timestamp. The *frame*, which includes
-                # the memory and heap information, follows this line and
-                # terminates when a '@@@' line is detected
-                _, timestamp_ms = line.split()
-                timestamp_ms = int(timestamp_ms)
-                heap = []
-                while True:
-                    # Store all the lines between '@@@' token in heap
-                    line = f.readline().rstrip()
-                    if line.startswith("@@@"):
-                        break
-                    heap.append(line)
-                if rtc_offset is None:
-                    rtc_offset = capture.frames[-1].timestamp_ms - timestamp_ms + 200
-                print(heap[:5])
-                print(heap[6:])
-                frame = HeapFrame(rtc_offset + timestamp_ms, heap)
-            else:
-                # LogFrame, use the timestamp if it's available
-                print("match timestamp")
-                print(line)
-                m = re.match(r"20\d\d-\d\d-\d\d (\d\d):(\d\d):(\d\d),(\d\d\d) ", line)
-                if m:
-                    hr = int(m.group(1))
-                    mn = int(m.group(2))
-                    sc = int(m.group(3))
-                    ms = int(m.group(4))
-                    timestamp_ms = ((hr * 60 + mn) * 60 + sc) * 1000 + ms
-                else:
-                    timestamp_ms = capture.frames[-1].timestamp_ms + 10
-                frame = LogFrame(timestamp_ms, line)
-            if frame:
-                capture.add_frame(frame, rtc_offset)
-    return capture
-
-
-def expand_frames(frames, frame_dt_ms):
-    timestamp_ms = frames[0].timestamp_ms // frame_dt_ms * frame_dt_ms
-    frame_num = 0
-    while frame_num < len(frames):
-        if timestamp_ms < frames[frame_num].timestamp_ms:
-            timestamp_ms += frame_dt_ms
-        while timestamp_ms < frames[frame_num].timestamp_ms:
-            frames.insert(frame_num, DummyFrame(timestamp_ms))
-            frame_num += 1
-            timestamp_ms += frame_dt_ms
-        frame_num += 1

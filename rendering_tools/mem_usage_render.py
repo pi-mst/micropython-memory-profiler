@@ -40,7 +40,7 @@ def parse_capture(filename):
             if line.startswith("@@@ v"):
                 # Title line
                 capture.title = line[4:]
-                print("title:", capture.title)
+                #print("title:", capture.title)
             elif line.startswith("@@@ ") and line.find(" (") != -1:
                 # Timestamp *and* datetime line
                 _, timestamp_ms, datetime = line.split(None, 2)
@@ -51,7 +51,7 @@ def parse_capture(filename):
                 rtc_offset = (
                     ((hr * 60 + mn) * 60 + sc) * 1000 + us // 1000 - timestamp_ms
                 )
-                print("timestamp_ms:", timestamp_ms, "rtc_offset:", rtc_offset)
+                #print("timestamp_ms:", timestamp_ms, "rtc_offset:", rtc_offset)
             elif line.startswith("@@@ "):
                 # Line with (only) a timestamp. The *frame*, which includes
                 # the memory and heap information, follows this line and
@@ -67,24 +67,35 @@ def parse_capture(filename):
                     heap.append(line)
                 if rtc_offset is None:
                     rtc_offset = capture.frames[-1].timestamp_ms - timestamp_ms + 200
-                print(heap[:5])
-                print(heap[6:])
+                #print(heap[:5])
+                #print(heap[6:])
                 frame = HeapFrame(rtc_offset + timestamp_ms, heap)
             else:
                 # LogFrame, use the timestamp if it's available
-                print("match timestamp")
-                print(line)
+                #print("match timestamp")
+                #print(line)
                 m = re.match(r"20\d\d-\d\d-\d\d (\d\d):(\d\d):(\d\d),(\d\d\d) ", line)
+                print('log')
+                timestamp_ms = None
                 if m:
                     hr = int(m.group(1))
                     mn = int(m.group(2))
                     sc = int(m.group(3))
                     ms = int(m.group(4))
                     timestamp_ms = ((hr * 60 + mn) * 60 + sc) * 1000 + ms
-                else:
+                elif len(capture.frames) > 0:
+                    print(len(capture.frames))
                     timestamp_ms = capture.frames[-1].timestamp_ms + 10
-                frame = LogFrame(timestamp_ms, line)
+                if timestamp_ms:
+                    frame = LogFrame(timestamp_ms, line)
+                else:
+                    # We can't create LogFrames before recording a
+                    # timestamp. So drop any log text until the first
+                    # HeapFrame is found.
+                    print(f"drop: {line}")
+                    frame = None
             if frame:
+                print("add capture")
                 capture.add_frame(frame, rtc_offset)
     return capture
 

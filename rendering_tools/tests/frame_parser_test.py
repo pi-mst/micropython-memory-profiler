@@ -24,3 +24,10 @@ class TestHeapFrame:
         frame = HeapFrame(4321, heap)
         print("test device")
         print("\n".join(frame.heap))
+
+
+# Other tests
+
+# - Ensure blank lines are stripped
+# - Ensure LogFrames are generated for inital lines (preceeding @@@ lines)
+# - Check each of the frame types
