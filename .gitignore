@@ -1,3 +1,7 @@
+# Image and video files in the rendering_tools folder
+rendering_tools/*.png
+rendering_tools/*.mp4
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
