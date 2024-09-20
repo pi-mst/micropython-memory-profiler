@@ -1,6 +1,11 @@
-
+# MIT license; Copyright (c) 2024, Planet Innovation
+# SPDX-License-Identifier: MIT
+# 436 Elgar Road, Box Hill, 3128, VIC, Australia
+# Phone: +61 3 9945 7510
+#
 
 import re
+
 
 class Capture:
     def __init__(self):
@@ -43,14 +48,13 @@ class HeapFrame(Frame):
         # convert body to something prettier
 
         def gen(heap: list[str]):
-
             for entry in heap:
                 if entry.find("lines all free") != -1:
                     m = re.search(r"\((\d+) lines all free", entry)
                     for _ in range(int(m.group(1))):
                         yield "." * 64
                 else:
-                    yield entry[10:] # The contents of the memory representation
+                    yield entry[10:]  # The contents of the memory representation
 
             while True:
                 yield ""

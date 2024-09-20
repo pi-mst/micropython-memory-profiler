@@ -1,19 +1,12 @@
+# MIT license; Copyright (c) 2024, Planet Innovation
+# SPDX-License-Identifier: MIT
+# 436 Elgar Road, Box Hill, 3128, VIC, Australia
+# Phone: +61 3 9945 7510
+#
+
 """
 Convert a device log containing periodic micropython.mem_info(1) into a set of
 images suitable to make a video.
-
-A capture should be made first by running mem_usage_main.py on the device.  For
-example:
-
-    $ pyboard.py mem_usage_main.py | tee > mem_usage.log
-
-Then run this script to convert the log to a sequence of PNG images:
-
-    $ python mem_usage_render.py mem_usage.log
-
-Video can then be made with (replace -s size with actual size of images):
-
-    ffmpeg -r 10 -f image2 -s 2100x1252 -i image_%04d.png -vcodec libx264 -crf 25 -pix_fmt yuv420p mem_usage.mp4
 """
 
 import re
@@ -26,6 +19,7 @@ from mem_usage_parser.frame_parser import Capture, LogFrame, DummyFrame, HeapFra
 COLOUR_BACKGROUND = (1, 1, 1)
 COLOUR_TEXT_PLAIN = (0, 0, 0)
 COLOUR_TEXT_CHANGED = (1, 0, 0)
+
 
 def parse_capture(filename):
     capture = Capture()
@@ -40,7 +34,7 @@ def parse_capture(filename):
             if line.startswith("@@@ v"):
                 # Title line
                 capture.title = line[4:]
-                #print("title:", capture.title)
+                # print("title:", capture.title)
             elif line.startswith("@@@ ") and line.find(" (") != -1:
                 # Timestamp *and* datetime line
                 _, timestamp_ms, datetime = line.split(None, 2)
@@ -51,7 +45,6 @@ def parse_capture(filename):
                 rtc_offset = (
                     ((hr * 60 + mn) * 60 + sc) * 1000 + us // 1000 - timestamp_ms
                 )
-                #print("timestamp_ms:", timestamp_ms, "rtc_offset:", rtc_offset)
             elif line.startswith("@@@ "):
                 # Line with (only) a timestamp. The *frame*, which includes
                 # the memory and heap information, follows this line and
@@ -67,15 +60,10 @@ def parse_capture(filename):
                     heap.append(line)
                 if rtc_offset is None:
                     rtc_offset = capture.frames[-1].timestamp_ms - timestamp_ms + 200
-                #print(heap[:5])
-                #print(heap[6:])
                 frame = HeapFrame(rtc_offset + timestamp_ms, heap)
             else:
                 # LogFrame, use the timestamp if it's available
-                #print("match timestamp")
-                #print(line)
                 m = re.match(r"20\d\d-\d\d-\d\d (\d\d):(\d\d):(\d\d),(\d\d\d) ", line)
-                print('log')
                 timestamp_ms = None
                 if m:
                     hr = int(m.group(1))
@@ -84,7 +72,6 @@ def parse_capture(filename):
                     ms = int(m.group(4))
                     timestamp_ms = ((hr * 60 + mn) * 60 + sc) * 1000 + ms
                 elif len(capture.frames) > 0:
-                    print(len(capture.frames))
                     timestamp_ms = capture.frames[-1].timestamp_ms + 10
                 if timestamp_ms:
                     frame = LogFrame(timestamp_ms, line)
@@ -92,10 +79,8 @@ def parse_capture(filename):
                     # We can't create LogFrames before recording a
                     # timestamp. So drop any log text until the first
                     # HeapFrame is found.
-                    print(f"drop: {line}")
                     frame = None
             if frame:
-                print("add capture")
                 capture.add_frame(frame, rtc_offset)
     return capture
 
