@@ -1,0 +1,32 @@
+name: Example
+
+on: [push]
+
+jobs:
+  build:
+    name: memory-profiler
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version:
+          - "3.11"
+          - "3.12"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v2
+        with:
+          # Install a specific version of uv.
+          version: "0.4.2"
+
+      - name: Set up Python ${{ matrix.python-version }}
+        run: uv python install ${{ matrix.python-version }}
+
+      - name: Install the project
+        run: uv sync --all-extras --dev
+
+      - name: Run tests
+        # For example, using `pytest`
+        run: uv run pytest rendering_tools/tests
