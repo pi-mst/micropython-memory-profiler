@@ -1,0 +1,15 @@
+[project]
+name = "micropython-memory-profiler"
+version = "0.1.0"
+description = "A memory profiler for use with MicroPython"
+readme = "rendering_tools/README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "pycairo>=1.26.1",
+    "pytest>=8.3.2",
+]
+
+[tool.pytest.ini_options]
+pythonpath = [
+  "rendering_tools"
+]

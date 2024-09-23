@@ -1,8 +1,14 @@
+# MIT license; Copyright (c) 2024, Planet Innovation
+# SPDX-License-Identifier: MIT
+# 436 Elgar Road, Box Hill, 3128, VIC, Australia
+# Phone: +61 3 9945 7510
+
 import time
 import micropython
 
 _MEM_DUMP_PERIOD_MS = 350
 _FIRST = True
+
 
 def mem_dump(_):
     global _FIRST
@@ -19,6 +25,7 @@ def mem_dump(_):
 
 def start_timer(period_ms=_MEM_DUMP_PERIOD_MS):
     from machine import Timer
+
     # Start a timer to periodically dump the heap.
     Timer(period=period_ms, callback=mem_dump)
 
