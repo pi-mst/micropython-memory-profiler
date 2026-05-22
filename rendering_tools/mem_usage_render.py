@@ -228,4 +228,5 @@ def main():
     render(max_rows, 260, capture)
 
 
-main()
+if __name__ == "__main__":
+    main()

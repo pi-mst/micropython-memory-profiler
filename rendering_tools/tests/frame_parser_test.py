@@ -1,4 +1,8 @@
-from mem_usage_parser.frame_parser import HeapFrame
+import os
+import tempfile
+
+from mem_usage_parser.frame_parser import HeapFrame, LogFrame
+from mem_usage_render import parse_capture
 
 
 class TestHeapFrame:
@@ -19,7 +23,8 @@ class TestHeapFrame:
 
     def test_device(self):
         heap = [
-            "stack: 668 out of 15360" "GC: total: 152512, used: 1264, free: 151248",
+            "stack: 668 out of 15360",
+            "GC: total: 152512, used: 1264, free: 151248",
             " No. of 1-blocks: 24, 2-blocks: 3, max blk sz: 18, max free sz: 9440",
             "GC memory layout; from 20006c30:",
         ]
@@ -33,6 +38,22 @@ class TestHeapFrame:
 # - Ensure blank lines are stripped
 # - Ensure LogFrames are generated for initial lines (preceding @@@ lines)
 # - Check each of the frame types
+
+
+class TestParseCapture:
+    def test_two_frames(self):
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".log", delete=False) as f:
+            f.write(two_frames.strip() + "\n")
+            fname = f.name
+        try:
+            capture = parse_capture(fname)
+            heap_frames = [fr for fr in capture.frames if isinstance(fr, HeapFrame)]
+            log_frames = [fr for fr in capture.frames if isinstance(fr, LogFrame)]
+            assert len(heap_frames) == 2
+            assert len(log_frames) > 0
+            assert heap_frames[0].timestamp_ms < heap_frames[1].timestamp_ms
+        finally:
+            os.unlink(fname)
 
 
 two_frames = """
