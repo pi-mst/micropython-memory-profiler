@@ -1,6 +1,11 @@
-
+# MIT license; Copyright (c) 2024, Planet Innovation
+# SPDX-License-Identifier: MIT
+# 436 Elgar Road, Box Hill, 3128, VIC, Australia
+# Phone: +61 3 9945 7510
+#
 
 import re
+
 
 class Capture:
     def __init__(self):
@@ -43,30 +48,20 @@ class HeapFrame(Frame):
         # convert body to something prettier
 
         def gen(heap: list[str]):
-            addr = 0
-
             for entry in heap:
                 if entry.find("lines all free") != -1:
                     m = re.search(r"\((\d+) lines all free", entry)
                     for _ in range(int(m.group(1))):
                         yield "." * 64
-                        #addr += 1024
-                        addr += 0x800
                 else:
-                    #print(f"entry {entry[:5]}, {addr=}")
-                    #assert int(entry[:5], 16) == addr
-                    assert int(entry[:8], 16) == addr
-                    #print(f"entry2: {entry[10:]}")
-                    #yield entry[7:]
-                    yield entry[10:] # The contents of the memory representation
+                    yield entry[10:]  # The contents of the memory representation
 
-                    #addr += 1024
-                    addr += 0x800
             while True:
                 yield ""
 
         # There is an optional 'mem' line
         # eg  "mem: total=74627, current=42583, peak=42639"
+        # If present, ensure it's included to find the top of the heap output.
         start_of_mem = 4  # The start of the memory dump starts on this line
         if heap[0].startswith("mem:"):
             start_of_mem += 1
@@ -81,7 +76,6 @@ class HeapFrame(Frame):
                 entry += next(g)
             if not entry:
                 break
-            addr = len(body) * 1024 * MULT
-            #body.append("{:05x}: ".format(addr) + entry)
+            addr = len(body) * 0x400 * MULT
             body.append("{:08x}: ".format(addr) + entry)
         self.heap = header + body
