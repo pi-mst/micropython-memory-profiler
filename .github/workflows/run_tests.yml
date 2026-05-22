@@ -1,9 +1,9 @@
-name: Example
+name: CI
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
-  build:
+  test:
     name: memory-profiler
     runs-on: ubuntu-latest
     strategy:
@@ -11,15 +11,13 @@ jobs:
         python-version:
           - "3.11"
           - "3.12"
+          - "3.13"
 
     steps:
       - uses: actions/checkout@v4
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v2
-        with:
-          # Install a specific version of uv.
-          version: "0.4.2"
+        uses: astral-sh/setup-uv@v6
 
       - name: Set up Python ${{ matrix.python-version }}
         run: uv python install ${{ matrix.python-version }}
@@ -28,5 +26,4 @@ jobs:
         run: uv sync --dev
 
       - name: Run tests
-        # For example, using `pytest`
         run: uv run pytest rendering_tools/tests
