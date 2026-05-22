@@ -27,6 +27,6 @@ filesystem.
 In `rendering_tools`:
 
 ```bash
-uv run mem_usage_render.py ../examples/dump.log
+uv run mem_usage_render.py ../examples/dump_unix.log
 ffmpeg -r 10 -f image2 -s 2100x1252 -i image_%04d.png -vcodec libx264 -crf 25 -pix_fmt yuv420p mem_usage.mp4
 ```
